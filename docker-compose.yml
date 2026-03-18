@@ -10,12 +10,9 @@ services:
   frontend:
     build: .
     restart: always
-    ports:
-      - "80:80"
+    network_mode: host
     environment:
-      - BACKEND_URL=http://backend:8000
-    depends_on:
-      - backend
+      - BACKEND_URL=http://127.0.0.1:8000
 
 volumes:
   db_data:
