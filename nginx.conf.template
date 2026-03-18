@@ -1,0 +1,29 @@
+server {
+    listen 80;
+    server_name _;
+    root /usr/share/nginx/html;
+    index index.html;
+
+    # SPA fallback
+    location / {
+        try_files $uri $uri/ /index.html;
+    }
+
+    # 后端 API 反代
+    location /api/ {
+        proxy_pass ${BACKEND_URL}/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    }
+
+    # B 站 API 反代（头像、用户信息）
+    location /bilibili/ {
+        proxy_pass https://api.bilibili.com/;
+        proxy_ssl_server_name on;
+        proxy_set_header Host api.bilibili.com;
+        proxy_set_header User-Agent "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36";
+        proxy_set_header Origin "https://www.bilibili.com";
+        proxy_set_header Referer "https://www.bilibili.com/";
+    }
+}

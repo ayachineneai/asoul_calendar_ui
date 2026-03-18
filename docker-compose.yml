@@ -1,0 +1,21 @@
+services:
+  backend:
+    build: ../asoul_calendar
+    restart: always
+    env_file:
+      - ../asoul_calendar/.env
+    volumes:
+      - db_data:/data
+
+  frontend:
+    build: .
+    restart: always
+    ports:
+      - "80:80"
+    environment:
+      - BACKEND_URL=http://backend:8000
+    depends_on:
+      - backend
+
+volumes:
+  db_data:
