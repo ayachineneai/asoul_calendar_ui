@@ -89,6 +89,20 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
   const calBodyRef = useRef<HTMLDivElement>(null);
   const [bodyHeight, setBodyHeight] = useState(600);
 
+  // Mobile detection with resize listener
+  const [isMobile, setIsMobile] = useState(() => window.innerWidth < 768);
+  useEffect(() => {
+    const handler = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  // Mobile: default to today's day index (0=Monday … 6=Sunday)
+  const [mobileDayIndex, setMobileDayIndex] = useState(() => {
+    const d = new Date().getDay();
+    return d === 0 ? 6 : d - 1;
+  });
+
   // Track container height to fill it exactly
   useEffect(() => {
     const el = calBodyRef.current;
@@ -110,10 +124,76 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
   const totalHeight = numHours * HOUR_HEIGHT;
   const hours = Array.from({ length: numHours + 1 }, (_, i) => startHour + i);
 
+  // Renders a single day column (used for both desktop and mobile)
+  function renderDayCol(day: Date, di: number) {
+    const dayLives = lives.filter((l) => sameDay(new Date(l.start_time), day));
+    const laid = layoutEvents(dayLives, duration);
+
+    return (
+      <div key={di} className="cal-day-col" style={{ height: totalHeight }}>
+        {hours.map((h) => (
+          <div
+            key={h}
+            className={`cal-hline${h === 12 ? ' noon' : ''}`}
+            style={{ top: (h - startHour) * HOUR_HEIGHT }}
+          />
+        ))}
+
+        {laid.map(({ live, startMin, col, cols }, i) => {
+          const top = (startMin / 60 - startHour) * HOUR_HEIGHT;
+          const height = Math.max((duration / 60) * HOUR_HEIGHT - 4, 28);
+          const color = getMemberColor(live);
+          const selected = live.slug ? selectedSlugs.has(live.slug) : false;
+
+          return (
+            <div
+              key={i}
+              className={`cal-event${selected ? ' selected' : ''}`}
+              style={{
+                top,
+                height,
+                left: `${(col / cols) * 100}%`,
+                width: `${100 / cols}%`,
+                borderLeftColor: color,
+                background: selected ? hexToRgba(color, 0.25) : hexToRgba(color, 0.12),
+                boxShadow: selected ? `0 0 0 1.5px ${color}` : undefined,
+              }}
+              onClick={() => live.slug && onToggleSlug(live.slug)}
+              onMouseEnter={(e) => {
+                if (isMobile) return;
+                const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+                setTooltip({ live, x: rect.right + 6, y: rect.top });
+              }}
+              onMouseLeave={() => setTooltip(null)}
+            >
+              <div className="ev-header">
+                <span className="ev-time" style={{ color }}>
+                  {new Date(live.start_time).toLocaleTimeString('zh-CN', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                    hour12: false,
+                  })}
+                </span>
+                {live.members.length >= 2 && (
+                  <span className={`ev-broadcast ev-broadcast-${getBroadcastKind(live.members)}`}>
+                    {BROADCAST_LABELS[getBroadcastKind(live.members)]}
+                  </span>
+                )}
+                {selected && <span className="ev-check">✓</span>}
+              </div>
+              <div className="ev-title">{live.title}</div>
+              <div className="ev-members">{live.members.join(' · ')}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <>
       <div className="calendar" onMouseLeave={() => setTooltip(null)}>
-        {/* Sticky header */}
+        {/* Desktop sticky header */}
         <div className="cal-header">
           <div className="cal-gutter" />
           {weekDays.map((day, i) => {
@@ -127,6 +207,39 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
           })}
         </div>
 
+        {/* Mobile day navigation */}
+        <div className="cal-mobile-nav">
+          <button
+            className="cal-nav-arrow"
+            onClick={() => setMobileDayIndex((i) => Math.max(0, i - 1))}
+            disabled={mobileDayIndex === 0}
+          >
+            ‹
+          </button>
+          <div className="cal-day-tabs">
+            {weekDays.map((day, i) => {
+              const isToday = sameDay(day, today);
+              return (
+                <button
+                  key={i}
+                  className={`cal-day-tab${i === mobileDayIndex ? ' active' : ''}${isToday ? ' today' : ''}`}
+                  onClick={() => setMobileDayIndex(i)}
+                >
+                  <span>{DAY_NAMES[i]}</span>
+                  <span>{day.getDate()}</span>
+                </button>
+              );
+            })}
+          </div>
+          <button
+            className="cal-nav-arrow"
+            onClick={() => setMobileDayIndex((i) => Math.min(6, i + 1))}
+            disabled={mobileDayIndex === 6}
+          >
+            ›
+          </button>
+        </div>
+
         {/* Scrollable grid body */}
         <div className="cal-body" ref={calBodyRef}>
           <div className="cal-gutter">
@@ -137,74 +250,15 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
             ))}
           </div>
 
-          {weekDays.map((day, di) => {
-            const dayLives = lives.filter((l) => sameDay(new Date(l.start_time), day));
-            const laid = layoutEvents(dayLives, duration);
-
-            return (
-              <div key={di} className="cal-day-col" style={{ height: totalHeight }}>
-                {hours.map((h) => (
-                  <div
-                    key={h}
-                    className={`cal-hline${h === 12 ? ' noon' : ''}`}
-                    style={{ top: (h - startHour) * HOUR_HEIGHT }}
-                  />
-                ))}
-
-                {laid.map(({ live, startMin, col, cols }, i) => {
-                  const top = (startMin / 60 - startHour) * HOUR_HEIGHT;
-                  const height = Math.max((duration / 60) * HOUR_HEIGHT - 4, 28);
-                  const color = getMemberColor(live);
-                  const selected = live.slug ? selectedSlugs.has(live.slug) : false;
-
-                  return (
-                    <div
-                      key={i}
-                      className={`cal-event${selected ? ' selected' : ''}`}
-                      style={{
-                        top,
-                        height,
-                        left: `${(col / cols) * 100}%`,
-                        width: `${100 / cols}%`,
-                        borderLeftColor: color,
-                        background: selected ? hexToRgba(color, 0.35) : hexToRgba(color, 0.15),
-                        boxShadow: selected ? `0 0 0 1.5px ${color}` : undefined,
-                      }}
-                      onClick={() => live.slug && onToggleSlug(live.slug)}
-                      onMouseEnter={(e) => {
-                        const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                        setTooltip({ live, x: rect.right + 6, y: rect.top });
-                      }}
-                      onMouseLeave={() => setTooltip(null)}
-                    >
-                      <div className="ev-header">
-                        <span className="ev-time" style={{ color }}>
-                          {new Date(live.start_time).toLocaleTimeString('zh-CN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            hour12: false,
-                          })}
-                        </span>
-                        {live.members.length >= 2 && (
-                          <span className={`ev-broadcast ev-broadcast-${getBroadcastKind(live.members)}`}>
-                            {BROADCAST_LABELS[getBroadcastKind(live.members)]}
-                          </span>
-                        )}
-                        {selected && <span className="ev-check">✓</span>}
-                      </div>
-                      <div className="ev-title">{live.title}</div>
-                      <div className="ev-members">{live.members.join(' · ')}</div>
-                    </div>
-                  );
-                })}
-              </div>
-            );
-          })}
+          {isMobile
+            ? renderDayCol(weekDays[mobileDayIndex], mobileDayIndex)
+            : weekDays.map((day, di) => renderDayCol(day, di))
+          }
         </div>
       </div>
 
       {/* Fixed-position tooltip — outside calendar so overflow:hidden won't clip it */}
-      {tooltip && (
+      {tooltip && !isMobile && (
         <EventTooltip tooltip={tooltip} />
       )}
     </>
