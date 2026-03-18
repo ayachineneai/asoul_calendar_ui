@@ -3,9 +3,8 @@ import type { Live } from '../types';
 import { getBroadcastKind, BROADCAST_LABELS } from '../types';
 import { MEMBER_MAP } from '../constants';
 
-const HOUR_HEIGHT = 64;
-const START_HOUR = 0;
-const END_HOUR = 24;
+const MIN_HOUR_HEIGHT = 32;
+const MAX_HOUR_HEIGHT = 80;
 
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
@@ -42,8 +41,11 @@ function hexToRgba(hex: string, alpha: number) {
 }
 
 function getMemberColor(live: Live): string {
-  const key = live.host || live.members[0];
-  return MEMBER_MAP.get(key)?.color ?? '#6366f1';
+  for (const key of live.members) {
+    const color = MEMBER_MAP.get(key)?.color;
+    if (color) return color;
+  }
+  return '#6366f1';
 }
 
 function layoutEvents(dayLives: Live[], durationMin: number) {
@@ -83,18 +85,30 @@ interface Props {
 export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, duration }: Props) {
   const weekDays = getWeekDays();
   const today = new Date();
-  const totalHeight = (END_HOUR - START_HOUR) * HOUR_HEIGHT;
-  const hours = Array.from({ length: END_HOUR - START_HOUR + 1 }, (_, i) => START_HOUR + i);
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
   const calBodyRef = useRef<HTMLDivElement>(null);
+  const [bodyHeight, setBodyHeight] = useState(600);
 
-  // Scroll to the earliest time-of-day across all events on first load
+  // Track container height to fill it exactly
   useEffect(() => {
-    if (lives.length === 0 || !calBodyRef.current) return;
-    const minMinutes = Math.min(...lives.map((l) => minuteOfDay(new Date(l.start_time))));
-    const scrollTop = Math.max(0, (minMinutes / 60) * HOUR_HEIGHT - HOUR_HEIGHT * 0.75);
-    calBodyRef.current.scrollTop = scrollTop;
-  }, [lives]);
+    const el = calBodyRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => setBodyHeight(entries[0].contentRect.height));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
+  // Dynamic hour range based on actual events
+  const startHour = lives.length > 0
+    ? Math.max(0, Math.min(...lives.map((l) => new Date(l.start_time).getHours())) - 1)
+    : 0;
+  const endHour = lives.length > 0
+    ? Math.min(24, Math.max(...lives.map((l) => new Date(l.start_time).getHours())) + Math.ceil(duration / 60) + 1)
+    : 24;
+  const numHours = endHour - startHour;
+  const HOUR_HEIGHT = Math.min(MAX_HOUR_HEIGHT, Math.max(MIN_HOUR_HEIGHT, bodyHeight / numHours));
+  const totalHeight = numHours * HOUR_HEIGHT;
+  const hours = Array.from({ length: numHours + 1 }, (_, i) => startHour + i);
 
   return (
     <>
@@ -117,7 +131,7 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
         <div className="cal-body" ref={calBodyRef}>
           <div className="cal-gutter">
             {hours.map((h) => (
-              <div key={h} className="cal-hour-label" style={{ top: (h - START_HOUR) * HOUR_HEIGHT }}>
+              <div key={h} className="cal-hour-label" style={{ top: (h - startHour) * HOUR_HEIGHT }}>
                 {h < 24 ? `${String(h).padStart(2, '0')}:00` : ''}
               </div>
             ))}
@@ -133,12 +147,12 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
                   <div
                     key={h}
                     className={`cal-hline${h === 12 ? ' noon' : ''}`}
-                    style={{ top: (h - START_HOUR) * HOUR_HEIGHT }}
+                    style={{ top: (h - startHour) * HOUR_HEIGHT }}
                   />
                 ))}
 
                 {laid.map(({ live, startMin, col, cols }, i) => {
-                  const top = (startMin / 60) * HOUR_HEIGHT;
+                  const top = (startMin / 60 - startHour) * HOUR_HEIGHT;
                   const height = Math.max((duration / 60) * HOUR_HEIGHT - 4, 28);
                   const color = getMemberColor(live);
                   const selected = live.slug ? selectedSlugs.has(live.slug) : false;
