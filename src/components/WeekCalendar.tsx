@@ -6,7 +6,6 @@ import { MEMBER_MAP } from '../constants';
 const HOUR_HEIGHT = 64;
 const START_HOUR = 0;
 const END_HOUR = 24;
-const DEFAULT_DURATION_MIN = 120; // fallback only
 
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
