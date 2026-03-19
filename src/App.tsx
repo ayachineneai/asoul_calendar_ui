@@ -208,7 +208,9 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-title">
-          <span className="app-title-icon">📅</span>
+          <span className="app-title-icon" aria-hidden>
+            <CalendarIcon />
+          </span>
           <span>A-SOUL 日程</span>
         </div>
         <div className="header-right">
@@ -322,6 +324,16 @@ function App() {
         />
       )}
     </div>
+  );
+}
+
+function CalendarIcon() {
+  const day = new Date().getDate();
+  return (
+    <span className="cal-icon">
+      <span className="cal-icon-cap" />
+      <span className="cal-icon-day">{day}</span>
+    </span>
   );
 }
 
