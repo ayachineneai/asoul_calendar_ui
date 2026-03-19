@@ -59,6 +59,7 @@ function layoutEvents(dayLives: Live[], durationMin: number) {
 interface Tooltip {
   live: Live;
   x: number;
+  xLeft: number;
   y: number;
 }
 
@@ -168,7 +169,7 @@ export default function WeekCalendar({
               onMouseEnter={(e) => {
                 if (isMobile) return;
                 const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-                setTooltip({ live, x: rect.right + 6, y: rect.top });
+                setTooltip({ live, x: rect.right + 6, xLeft: rect.left, y: rect.top });
               }}
               onMouseLeave={() => setTooltip(null)}
             >
@@ -300,13 +301,14 @@ export default function WeekCalendar({
 }
 
 function EventTooltip({ tooltip }: { tooltip: Tooltip }) {
-  const { live, x, y } = tooltip;
+  const { live, x, xLeft, y } = tooltip;
   const color = getMemberColor(live);
   const bk = getBroadcastKind(live.members);
   const startTime = new Date(live.start_time);
 
   const tooltipWidth = 240;
-  const left = x + tooltipWidth > window.innerWidth ? x - tooltipWidth - 12 : x;
+  // Prefer right side; if it overflows viewport, place fully to the left of the card
+  const left = x + tooltipWidth > window.innerWidth ? xLeft - tooltipWidth - 6 : x;
 
   return (
     <div

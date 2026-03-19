@@ -775,10 +775,16 @@
   transition: all 0.12s;
 }
 
-.week-nav-btn:hover {
+.week-nav-btn:hover:not(:disabled) {
   border-color: #a855f7;
   color: #a855f7;
   background: rgba(168, 85, 247, 0.06);
+}
+
+.week-nav-btn:disabled {
+  color: #d8c8f0;
+  border-color: #f0e8fa;
+  cursor: default;
 }
 
 .week-nav-label {

@@ -19,17 +19,32 @@ import DurationPicker from './components/DurationPicker';
 import LiveForm from './components/LiveForm';
 import { useAvatars } from './hooks/useAvatars';
 
-function getWeekDays(offset: number): Date[] {
+function getMonday(offset: number): Date {
   const today = new Date();
   const dow = today.getDay();
   const monday = new Date(today);
   monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
   monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+function getWeekDays(offset: number): Date[] {
+  const monday = getMonday(offset);
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(monday);
     d.setDate(monday.getDate() + i);
     return d;
   });
+}
+
+// Returns the week offset (relative to current week) that a date falls in
+function dateToWeekOffset(date: Date): number {
+  const currentMonday = getMonday(0).getTime();
+  const dow = date.getDay();
+  const liveMonday = new Date(date);
+  liveMonday.setDate(date.getDate() - (dow === 0 ? 6 : dow - 1));
+  liveMonday.setHours(0, 0, 0, 0);
+  return Math.round((liveMonday.getTime() - currentMonday) / (7 * 24 * 60 * 60 * 1000));
 }
 
 function App() {
@@ -61,6 +76,13 @@ function App() {
       d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
     return `${fmt(start)} – ${fmt(end)}`;
   }, [weekDays]);
+
+  // Allowed week range derived from available data
+  const [minWeekOffset, maxWeekOffset] = useMemo(() => {
+    if (lives.length === 0) return [0, 0];
+    const offsets = lives.map((l) => dateToWeekOffset(new Date(l.start_time)));
+    return [Math.min(...offsets), Math.max(...offsets)];
+  }, [lives]);
 
   // Check token from URL on mount
   useEffect(() => {
@@ -249,11 +271,12 @@ function App() {
         <button
           className="week-nav-btn"
           onClick={() => setWeekOffset((o) => o - 1)}
+          disabled={weekOffset <= minWeekOffset}
         >
           ← 上周
         </button>
         <span className="week-nav-label">{weekLabel}</span>
-        {weekOffset !== 0 && (
+        {weekOffset !== 0 && weekOffset >= minWeekOffset && weekOffset <= maxWeekOffset && (
           <button className="week-nav-today" onClick={() => setWeekOffset(0)}>
             本周
           </button>
@@ -261,6 +284,7 @@ function App() {
         <button
           className="week-nav-btn"
           onClick={() => setWeekOffset((o) => o + 1)}
+          disabled={weekOffset >= maxWeekOffset}
         >
           下周 →
         </button>
