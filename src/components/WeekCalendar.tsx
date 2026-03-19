@@ -8,19 +8,6 @@ const MAX_HOUR_HEIGHT = 80;
 
 const DAY_NAMES = ['周一', '周二', '周三', '周四', '周五', '周六', '周日'];
 
-function getWeekDays(): Date[] {
-  const today = new Date();
-  const dow = today.getDay();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1));
-  monday.setHours(0, 0, 0, 0);
-  return Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(monday);
-    d.setDate(monday.getDate() + i);
-    return d;
-  });
-}
-
 function sameDay(a: Date, b: Date) {
   return (
     a.getFullYear() === b.getFullYear() &&
@@ -77,13 +64,25 @@ interface Tooltip {
 
 interface Props {
   lives: Live[];
+  weekDays: Date[];
   selectedSlugs: Set<string>;
   onToggleSlug: (slug: string) => void;
   duration: number;
+  isAdmin?: boolean;
+  onEditLive?: (live: Live) => void;
+  onDeleteLive?: (live: Live) => void;
 }
 
-export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, duration }: Props) {
-  const weekDays = getWeekDays();
+export default function WeekCalendar({
+  lives,
+  weekDays,
+  selectedSlugs,
+  onToggleSlug,
+  duration,
+  isAdmin,
+  onEditLive,
+  onDeleteLive,
+}: Props) {
   const today = new Date();
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
   const calBodyRef = useRef<HTMLDivElement>(null);
@@ -113,12 +112,19 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
   }, []);
 
   // Dynamic hour range based on actual events
-  const startHour = lives.length > 0
-    ? Math.max(0, Math.min(...lives.map((l) => new Date(l.start_time).getHours())) - 1)
-    : 0;
-  const endHour = lives.length > 0
-    ? Math.min(24, Math.max(...lives.map((l) => new Date(l.start_time).getHours())) + Math.ceil(duration / 60) + 1)
-    : 24;
+  const startHour =
+    lives.length > 0
+      ? Math.max(0, Math.min(...lives.map((l) => new Date(l.start_time).getHours())) - 1)
+      : 0;
+  const endHour =
+    lives.length > 0
+      ? Math.min(
+          24,
+          Math.max(...lives.map((l) => new Date(l.start_time).getHours())) +
+            Math.ceil(duration / 60) +
+            1,
+        )
+      : 24;
   const numHours = endHour - startHour;
   const HOUR_HEIGHT = Math.min(MAX_HOUR_HEIGHT, Math.max(MIN_HOUR_HEIGHT, bodyHeight / numHours));
   const totalHeight = numHours * HOUR_HEIGHT;
@@ -148,7 +154,7 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
           return (
             <div
               key={i}
-              className={`cal-event${selected ? ' selected' : ''}`}
+              className={`cal-event${selected ? ' selected' : ''}${isAdmin ? ' admin-event' : ''}`}
               style={{
                 top,
                 height,
@@ -175,7 +181,9 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
                   })}
                 </span>
                 {live.members.length >= 2 && (
-                  <span className={`ev-broadcast ev-broadcast-${getBroadcastKind(live.members)}`}>
+                  <span
+                    className={`ev-broadcast ev-broadcast-${getBroadcastKind(live.members)}`}
+                  >
                     {BROADCAST_LABELS[getBroadcastKind(live.members)]}
                   </span>
                 )}
@@ -183,6 +191,31 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
               </div>
               <div className="ev-title">{live.title}</div>
               <div className="ev-members">{live.members.join(' · ')}</div>
+
+              {isAdmin && (
+                <div className="ev-admin-actions">
+                  <button
+                    className="ev-admin-btn ev-admin-edit"
+                    title="编辑"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onEditLive?.(live);
+                    }}
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    className="ev-admin-btn ev-admin-delete"
+                    title="删除"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onDeleteLive?.(live);
+                    }}
+                  >
+                    🗑️
+                  </button>
+                </div>
+              )}
             </div>
           );
         })}
@@ -244,7 +277,11 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
         <div className="cal-body" ref={calBodyRef}>
           <div className="cal-gutter">
             {hours.map((h) => (
-              <div key={h} className="cal-hour-label" style={{ top: (h - startHour) * HOUR_HEIGHT }}>
+              <div
+                key={h}
+                className="cal-hour-label"
+                style={{ top: (h - startHour) * HOUR_HEIGHT }}
+              >
                 {h < 24 ? `${String(h).padStart(2, '0')}:00` : ''}
               </div>
             ))}
@@ -252,15 +289,12 @@ export default function WeekCalendar({ lives, selectedSlugs, onToggleSlug, durat
 
           {isMobile
             ? renderDayCol(weekDays[mobileDayIndex], mobileDayIndex)
-            : weekDays.map((day, di) => renderDayCol(day, di))
-          }
+            : weekDays.map((day, di) => renderDayCol(day, di))}
         </div>
       </div>
 
       {/* Fixed-position tooltip — outside calendar so overflow:hidden won't clip it */}
-      {tooltip && !isMobile && (
-        <EventTooltip tooltip={tooltip} />
-      )}
+      {tooltip && !isMobile && <EventTooltip tooltip={tooltip} />}
     </>
   );
 }
@@ -271,7 +305,6 @@ function EventTooltip({ tooltip }: { tooltip: Tooltip }) {
   const bk = getBroadcastKind(live.members);
   const startTime = new Date(live.start_time);
 
-  // Clamp to viewport right edge
   const tooltipWidth = 240;
   const left = x + tooltipWidth > window.innerWidth ? x - tooltipWidth - 12 : x;
 
@@ -279,13 +312,19 @@ function EventTooltip({ tooltip }: { tooltip: Tooltip }) {
     <div
       className="ev-tooltip"
       style={{ left, top: y }}
-      // Prevent the tooltip itself from triggering onMouseLeave on the calendar
       onMouseEnter={(e) => e.stopPropagation()}
     >
       <div className="ev-tooltip-time" style={{ color }}>
-        {startTime.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}
-        {' '}
-        {startTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        {startTime.toLocaleDateString('zh-CN', {
+          month: 'long',
+          day: 'numeric',
+          weekday: 'short',
+        })}{' '}
+        {startTime.toLocaleTimeString('zh-CN', {
+          hour: '2-digit',
+          minute: '2-digit',
+          hour12: false,
+        })}
       </div>
       <div className="ev-tooltip-title">{live.title}</div>
       <div className="ev-tooltip-meta">

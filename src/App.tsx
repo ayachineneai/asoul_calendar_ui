@@ -1,6 +1,13 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import './App.css';
-import { fetchLives } from './api';
+import {
+  fetchLives,
+  verifyToken,
+  adminCreateLive,
+  adminUpdateLive,
+  adminDeleteLive,
+} from './api';
+import type { LiveBody } from './api';
 import { MEMBERS, API_BASE } from './constants';
 import type { Live, BroadcastKind } from './types';
 import { getBroadcastKind } from './types';
@@ -9,7 +16,21 @@ import BroadcastFilter from './components/BroadcastFilter';
 import TagFilter from './components/TagFilter';
 import WeekCalendar from './components/WeekCalendar';
 import DurationPicker from './components/DurationPicker';
+import LiveForm from './components/LiveForm';
 import { useAvatars } from './hooks/useAvatars';
+
+function getWeekDays(offset: number): Date[] {
+  const today = new Date();
+  const dow = today.getDay();
+  const monday = new Date(today);
+  monday.setDate(today.getDate() - (dow === 0 ? 6 : dow - 1) + offset * 7);
+  monday.setHours(0, 0, 0, 0);
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return d;
+  });
+}
 
 function App() {
   const avatars = useAvatars();
@@ -23,14 +44,51 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Admin
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminToken, setAdminToken] = useState('');
+  const [editingLive, setEditingLive] = useState<Live | null>(null);
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  // Week navigation
+  const [weekOffset, setWeekOffset] = useState(0);
+  const weekDays = useMemo(() => getWeekDays(weekOffset), [weekOffset]);
+
+  const weekLabel = useMemo(() => {
+    const start = weekDays[0];
+    const end = weekDays[6];
+    const fmt = (d: Date) =>
+      d.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+    return `${fmt(start)} – ${fmt(end)}`;
+  }, [weekDays]);
+
+  // Check token from URL on mount
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (token) {
+      verifyToken(token).then((valid) => {
+        if (valid) {
+          setIsAdmin(true);
+          setAdminToken(token);
+        }
+      });
+    }
+  }, []);
+
+  // Fetch all lives once on mount (and after admin mutations)
+  const loadLives = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchLives([...selectedMembers])
+    fetchLives()
       .then(setLives)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, [selectedMembers]);
+  }, []);
+
+  useEffect(() => {
+    loadLives();
+  }, [loadLives]);
 
   // Drop selected slugs that are no longer in the fetched lives
   useEffect(() => {
@@ -55,11 +113,14 @@ function App() {
 
   const filteredLives = useMemo(() => {
     return lives.filter((l) => {
-      if (selectedKinds.size > 0 && !selectedKinds.has(getBroadcastKind(l.members))) return false;
+      if (selectedMembers.size > 0 && !l.members.some((m) => selectedMembers.has(m)))
+        return false;
+      if (selectedKinds.size > 0 && !selectedKinds.has(getBroadcastKind(l.members)))
+        return false;
       if (selectedTags.size > 0 && !selectedTags.has(l.tag)) return false;
       return true;
     });
-  }, [lives, selectedKinds, selectedTags]);
+  }, [lives, selectedMembers, selectedKinds, selectedTags]);
 
   // If specific events are selected, subscribe to those slugs only;
   // otherwise subscribe to current filter conditions.
@@ -85,7 +146,6 @@ function App() {
           next.has(value) ? next.delete(value) : next.add(value);
           return next;
         }
-        // single-select: select only this item, or deselect if already the sole selection
         if (prev.size === 1 && prev.has(value)) return new Set();
         return new Set([value]);
       });
@@ -104,14 +164,37 @@ function App() {
     });
   }
 
+  // Admin handlers
+  async function handleCreate(body: LiveBody) {
+    await adminCreateLive(adminToken, body);
+    loadLives();
+  }
+
+  async function handleUpdate(body: LiveBody) {
+    if (!editingLive) return;
+    await adminUpdateLive(adminToken, editingLive.slug, body);
+    loadLives();
+  }
+
+  async function handleDelete(live: Live) {
+    if (!confirm(`确认删除「${live.title}」？`)) return;
+    await adminDeleteLive(adminToken, live.slug);
+    loadLives();
+  }
+
   return (
     <div className="app">
       <header className="app-header">
         <div className="app-title">
           <span className="app-title-icon">📅</span>
-          <span>A-SOUL 本周日程</span>
+          <span>A-SOUL 日程</span>
         </div>
         <div className="header-right">
+          {isAdmin && (
+            <button className="admin-add-btn" onClick={() => setShowAddForm(true)}>
+              + 新增日程
+            </button>
+          )}
           {selectedSlugs.size > 0 && (
             <span className="slug-hint">已选 {selectedSlugs.size} 场</span>
           )}
@@ -127,7 +210,12 @@ function App() {
       </header>
 
       <div className="filters">
-        <MemberFilter members={MEMBERS} selected={selectedMembers} onToggle={toggleMember} avatars={avatars} />
+        <MemberFilter
+          members={MEMBERS}
+          selected={selectedMembers}
+          onToggle={toggleMember}
+          avatars={avatars}
+        />
         <BroadcastFilter selected={selectedKinds} onToggle={toggleKind} />
         <TagFilter tags={allTags} selected={selectedTags} onToggle={toggleTag} />
         <div className="filter-row">
@@ -137,7 +225,9 @@ function App() {
             <select
               className="setting-select"
               value={reminder ?? ''}
-              onChange={(e) => setReminder(e.target.value === '' ? null : Number(e.target.value))}
+              onChange={(e) =>
+                setReminder(e.target.value === '' ? null : Number(e.target.value))
+              }
             >
               <option value="">不提醒</option>
               <option value={0}>准时提醒</option>
@@ -155,6 +245,27 @@ function App() {
         </div>
       </div>
 
+      <div className="week-nav">
+        <button
+          className="week-nav-btn"
+          onClick={() => setWeekOffset((o) => o - 1)}
+        >
+          ← 上周
+        </button>
+        <span className="week-nav-label">{weekLabel}</span>
+        {weekOffset !== 0 && (
+          <button className="week-nav-today" onClick={() => setWeekOffset(0)}>
+            本周
+          </button>
+        )}
+        <button
+          className="week-nav-btn"
+          onClick={() => setWeekOffset((o) => o + 1)}
+        >
+          下周 →
+        </button>
+      </div>
+
       <main className="main">
         {loading && (
           <div className="status-msg">
@@ -165,12 +276,27 @@ function App() {
         {!loading && !error && (
           <WeekCalendar
             lives={filteredLives}
+            weekDays={weekDays}
             selectedSlugs={selectedSlugs}
             onToggleSlug={toggleSlug}
             duration={duration}
+            isAdmin={isAdmin}
+            onEditLive={setEditingLive}
+            onDeleteLive={handleDelete}
           />
         )}
       </main>
+
+      {showAddForm && (
+        <LiveForm onSubmit={handleCreate} onClose={() => setShowAddForm(false)} />
+      )}
+      {editingLive && (
+        <LiveForm
+          live={editingLive}
+          onSubmit={handleUpdate}
+          onClose={() => setEditingLive(null)}
+        />
+      )}
     </div>
   );
 }
