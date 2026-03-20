@@ -250,19 +250,6 @@ function App() {
       </header>
 
       <div className="filters">
-        {(selectedMembers.size > 0 || selectedKinds.size > 0 || selectedTags.size > 0 || selectedLiveKinds.size > 0) && (
-          <button
-            className="filter-reset-btn"
-            onClick={() => {
-              setSelectedMembers(new Set());
-              setSelectedKinds(new Set());
-              setSelectedTags(new Set());
-              setSelectedLiveKinds(new Set());
-            }}
-          >
-            重置筛选
-          </button>
-        )}
         <MemberFilter
           members={MEMBERS}
           selected={selectedMembers}
@@ -280,6 +267,13 @@ function App() {
               return next;
             })
           }
+          hasActiveFilters={selectedMembers.size > 0 || selectedKinds.size > 0 || selectedTags.size > 0 || selectedLiveKinds.size > 0}
+          onReset={() => {
+            setSelectedMembers(new Set());
+            setSelectedKinds(new Set());
+            setSelectedTags(new Set());
+            setSelectedLiveKinds(new Set());
+          }}
         />
         <TagFilter tags={allTags} selected={selectedTags} onToggle={toggleTag} />
         <div className="filter-row">

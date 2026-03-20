@@ -207,16 +207,20 @@
 }
 
 .filter-reset-btn {
-  align-self: flex-start;
+  margin-left: auto;
   border: none;
   background: none;
-  color: #a855f7;
+  color: #c4b8d8;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  white-space: nowrap;
+  transition: color 0.12s;
+}
+
+.filter-reset-btn:hover {
+  color: #a855f7;
 }
 
 .filter-label {

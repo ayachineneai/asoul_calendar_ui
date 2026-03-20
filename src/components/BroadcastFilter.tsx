@@ -11,9 +11,11 @@ interface Props {
   onToggle: (kind: BroadcastKind, multi: boolean) => void;
   selectedLiveKinds: Set<LiveKind>;
   onToggleLiveKind: (kind: LiveKind) => void;
+  hasActiveFilters: boolean;
+  onReset: () => void;
 }
 
-export default function BroadcastFilter({ selected, onToggle, selectedLiveKinds, onToggleLiveKind }: Props) {
+export default function BroadcastFilter({ selected, onToggle, selectedLiveKinds, onToggleLiveKind, hasActiveFilters, onReset }: Props) {
   return (
     <div className="filter-row">
       <span className="filter-label">类型</span>
@@ -38,6 +40,9 @@ export default function BroadcastFilter({ selected, onToggle, selectedLiveKinds,
           </button>
         ))}
       </div>
+      {hasActiveFilters && (
+        <button className="filter-reset-btn" onClick={onReset}>重置筛选</button>
+      )}
     </div>
   );
 }
