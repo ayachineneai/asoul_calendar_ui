@@ -5,7 +5,6 @@ import { useLongPress } from '../hooks/useLongPress';
 type LiveKind = 'schedule' | 'unplanned';
 
 const ALL_BROADCASTS: BroadcastKind[] = ['solo', 'duo', 'group'];
-const LIVE_KIND_LABELS: Record<LiveKind, string> = { schedule: '官方', unplanned: '突击' };
 
 interface Props {
   selected: Set<BroadcastKind>;
@@ -63,7 +62,7 @@ export default function BroadcastFilter({
             onClick={() => onToggleLiveKind(k)}
             onEnterMultiSelect={onEnterMultiSelect}
           >
-            {LIVE_KIND_LABELS[k]}
+            {k === 'schedule' ? '官方' : '突击'}
           </LongPressChip>
         ))}
         {hasActiveFilters && (

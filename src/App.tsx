@@ -136,7 +136,7 @@ function App() {
   }, [lives]);
 
   const allTags = useMemo(() => {
-    const tags = new Set(lives.map((l) => l.tag).filter(Boolean));
+    const tags = new Set(lives.map((l) => l.tag).filter((t) => Boolean(t) && t !== '突击'));
     return [...tags].sort();
   }, [lives]);
 
