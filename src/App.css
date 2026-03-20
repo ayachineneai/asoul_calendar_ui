@@ -622,10 +622,25 @@
   color: #059669;
 }
 
-.kind-chip-schedule.active {
+.filter-divider {
+  display: inline-block;
+  width: 1px;
+  height: 16px;
+  background: #ede0f7;
+  margin: 0 4px;
+  align-self: center;
+}
+
+.live-kind-chip.live-kind-schedule.active {
   background: rgba(34, 197, 94, 0.12);
   border-color: #16a34a;
   color: #16a34a;
+}
+
+.live-kind-chip.live-kind-unplanned.active {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: #dc2626;
+  color: #dc2626;
 }
 
 .ev-title {

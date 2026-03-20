@@ -63,7 +63,7 @@ function App() {
 
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [selectedKinds, setSelectedKinds] = useState<Set<BroadcastKind>>(new Set());
-  const [scheduleOnly, setScheduleOnly] = useState(false);
+  const [selectedLiveKinds, setSelectedLiveKinds] = useState<Set<'schedule' | 'unplanned'>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [reminder, setReminder] = useState<number | null>(0);
@@ -153,10 +153,10 @@ function App() {
       if (selectedKinds.size > 0 && !selectedKinds.has(getBroadcastKind(l.members)))
         return false;
       if (selectedTags.size > 0 && !selectedTags.has(l.tag)) return false;
-      if (scheduleOnly && l.kind !== 'schedule') return false;
+      if (selectedLiveKinds.size > 0 && !selectedLiveKinds.has(l.kind)) return false;
       return true;
     });
-  }, [lives, selectedMembers, selectedKinds, selectedTags, scheduleOnly]);
+  }, [lives, selectedMembers, selectedKinds, selectedTags, selectedLiveKinds]);
 
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
@@ -263,8 +263,14 @@ function App() {
         <BroadcastFilter
           selected={selectedKinds}
           onToggle={toggleKind}
-          scheduleOnly={scheduleOnly}
-          onToggleSchedule={() => setScheduleOnly((v) => !v)}
+          selectedLiveKinds={selectedLiveKinds}
+          onToggleLiveKind={(k) =>
+            setSelectedLiveKinds((prev) => {
+              const next = new Set(prev);
+              next.has(k) ? next.delete(k) : next.add(k);
+              return next;
+            })
+          }
         />
         <TagFilter tags={allTags} selected={selectedTags} onToggle={toggleTag} />
         <div className="filter-row">

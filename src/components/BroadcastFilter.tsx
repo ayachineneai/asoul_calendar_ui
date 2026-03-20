@@ -1,21 +1,24 @@
 import type { BroadcastKind } from '../types';
 import { BROADCAST_LABELS } from '../types';
 
-const ALL_KINDS: BroadcastKind[] = ['solo', 'duo', 'group'];
+type LiveKind = 'schedule' | 'unplanned';
+
+const ALL_BROADCASTS: BroadcastKind[] = ['solo', 'duo', 'group'];
+const LIVE_KIND_LABELS: Record<LiveKind, string> = { schedule: '官方', unplanned: '突击' };
 
 interface Props {
   selected: Set<BroadcastKind>;
   onToggle: (kind: BroadcastKind, multi: boolean) => void;
-  scheduleOnly: boolean;
-  onToggleSchedule: () => void;
+  selectedLiveKinds: Set<LiveKind>;
+  onToggleLiveKind: (kind: LiveKind) => void;
 }
 
-export default function BroadcastFilter({ selected, onToggle, scheduleOnly, onToggleSchedule }: Props) {
+export default function BroadcastFilter({ selected, onToggle, selectedLiveKinds, onToggleLiveKind }: Props) {
   return (
     <div className="filter-row">
       <span className="filter-label">类型</span>
       <div className="tag-list">
-        {ALL_KINDS.map((k) => (
+        {ALL_BROADCASTS.map((k) => (
           <button
             key={k}
             className={`tag-chip broadcast-chip broadcast-${k}${selected.has(k) ? ' active' : ''}`}
@@ -24,12 +27,16 @@ export default function BroadcastFilter({ selected, onToggle, scheduleOnly, onTo
             {BROADCAST_LABELS[k]}
           </button>
         ))}
-        <button
-          className={`tag-chip kind-chip-schedule${scheduleOnly ? ' active' : ''}`}
-          onClick={onToggleSchedule}
-        >
-          官方
-        </button>
+        <span className="filter-divider" />
+        {(['schedule', 'unplanned'] as LiveKind[]).map((k) => (
+          <button
+            key={k}
+            className={`tag-chip live-kind-chip live-kind-${k}${selectedLiveKinds.has(k) ? ' active' : ''}`}
+            onClick={() => onToggleLiveKind(k)}
+          >
+            {LIVE_KIND_LABELS[k]}
+          </button>
+        ))}
       </div>
     </div>
   );
