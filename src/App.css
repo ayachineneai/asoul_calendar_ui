@@ -148,6 +148,16 @@
   gap: 8px;
 }
 
+.sub-modal-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sub-modal-settings .setting-item + .setting-item {
+  margin-left: 0;
+}
+
 .sub-modal-url-row {
   display: flex;
   gap: 8px;

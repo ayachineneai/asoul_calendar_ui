@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import type { BroadcastKind, Member } from '../types';
 import { BROADCAST_LABELS } from '../types';
 import { API_BASE } from '../constants';
+import DurationPicker from './DurationPicker';
 
 type LiveKind = 'schedule' | 'unplanned';
 
@@ -29,11 +30,12 @@ export default function SubscribeModal({ onClose, avatars, members }: Props) {
   const [selMembers, setSelMembers] = useState<Set<string>>(new Set(members.map((m) => m.code)));
   const [selBroadcast, setSelBroadcast] = useState<Set<BroadcastKind>>(new Set(ALL_BROADCASTS));
   const [selKind, setSelKind] = useState<Set<LiveKind>>(new Set(ALL_KINDS));
+  const [reminder, setReminder] = useState<number | null>(0);
+  const [duration, setDuration] = useState(120);
   const [copied, setCopied] = useState(false);
 
   const webcalUrl = useMemo(() => {
     const params = new URLSearchParams();
-    // 全选时不传参，后端默认返回全部
     if (selMembers.size < members.length) {
       for (const m of selMembers) params.append('members', m);
     }
@@ -43,10 +45,12 @@ export default function SubscribeModal({ onClose, avatars, members }: Props) {
     if (selKind.size < ALL_KINDS.length) {
       for (const k of selKind) params.append('kind', k);
     }
+    if (reminder !== null) params.set('reminder', String(reminder));
+    params.set('duration', String(duration));
     const base = `${window.location.host}${API_BASE}/calendar.ics`;
     const qs = params.toString();
     return `webcal://${base}${qs ? '?' + qs : ''}`;
-  }, [selMembers, selBroadcast, selKind]);
+  }, [selMembers, selBroadcast, selKind, reminder, duration]);
 
   async function handleCopy() {
     await navigator.clipboard.writeText(webcalUrl);
@@ -117,6 +121,32 @@ export default function SubscribeModal({ onClose, avatars, members }: Props) {
                   {KIND_LABELS[k]}
                 </button>
               ))}
+            </div>
+          </div>
+
+          <div className="sub-modal-section">
+            <div className="form-label">设置</div>
+            <div className="sub-modal-settings">
+              <label className="setting-item">
+                <span>提前提醒</span>
+                <select
+                  className="setting-select"
+                  value={reminder ?? ''}
+                  onChange={(e) => setReminder(e.target.value === '' ? null : Number(e.target.value))}
+                >
+                  <option value="">不提醒</option>
+                  <option value={0}>准时提醒</option>
+                  <option value={5}>提前 5 分钟</option>
+                  <option value={10}>提前 10 分钟</option>
+                  <option value={15}>提前 15 分钟</option>
+                  <option value={30}>提前 30 分钟</option>
+                  <option value={60}>提前 1 小时</option>
+                </select>
+              </label>
+              <label className="setting-item">
+                <span>默认时长</span>
+                <DurationPicker value={duration} onChange={setDuration} />
+              </label>
             </div>
           </div>
 
