@@ -105,6 +105,7 @@ export default function WeekCalendar({
     const d = new Date().getDay();
     return d === 0 ? 6 : d - 1;
   });
+  const [mobileView, setMobileView] = useState<'day' | 'week'>('day');
 
   // Track container height to fill it exactly
   useEffect(() => {
@@ -231,10 +232,12 @@ export default function WeekCalendar({
     );
   }
 
+  const isMobileWeek = isMobile && mobileView === 'week';
+
   return (
     <>
-      <div className="calendar" onMouseLeave={() => setTooltip(null)}>
-        {/* Desktop sticky header */}
+      <div className={`calendar${isMobileWeek ? ' mobile-week' : ''}`} onMouseLeave={() => setTooltip(null)}>
+        {/* Desktop sticky header (also shown in mobile week view) */}
         <div className="cal-header">
           <div className="cal-gutter" />
           {weekDays.map((day, i) => {
@@ -250,15 +253,17 @@ export default function WeekCalendar({
 
         {/* Mobile day navigation */}
         <div className="cal-mobile-nav">
-          <button
-            className="cal-nav-arrow"
-            onClick={() => setMobileDayIndex((i) => Math.max(0, i - 1))}
-            disabled={mobileDayIndex === 0}
-          >
-            ‹
-          </button>
+          {mobileView === 'day' && (
+            <button
+              className="cal-nav-arrow"
+              onClick={() => setMobileDayIndex((i) => Math.max(0, i - 1))}
+              disabled={mobileDayIndex === 0}
+            >
+              ‹
+            </button>
+          )}
           <div className="cal-day-tabs">
-            {weekDays.map((day, i) => {
+            {mobileView === 'day' ? weekDays.map((day, i) => {
               const isToday = sameDay(day, today);
               return (
                 <button
@@ -270,15 +275,31 @@ export default function WeekCalendar({
                   <span>{day.getDate()}</span>
                 </button>
               );
-            })}
+            }) : <span className="cal-week-label">本周总览</span>}
           </div>
-          <button
-            className="cal-nav-arrow"
-            onClick={() => setMobileDayIndex((i) => Math.min(6, i + 1))}
-            disabled={mobileDayIndex === 6}
-          >
-            ›
-          </button>
+          {mobileView === 'day' && (
+            <button
+              className="cal-nav-arrow"
+              onClick={() => setMobileDayIndex((i) => Math.min(6, i + 1))}
+              disabled={mobileDayIndex === 6}
+            >
+              ›
+            </button>
+          )}
+          <div className="cal-view-toggle">
+            <button
+              className={`cal-view-btn${mobileView === 'day' ? ' active' : ''}`}
+              onClick={() => setMobileView('day')}
+            >
+              日
+            </button>
+            <button
+              className={`cal-view-btn${mobileView === 'week' ? ' active' : ''}`}
+              onClick={() => setMobileView('week')}
+            >
+              周
+            </button>
+          </div>
         </div>
 
         {/* Scrollable grid body */}
@@ -295,7 +316,7 @@ export default function WeekCalendar({
             ))}
           </div>
 
-          {isMobile
+          {isMobile && mobileView === 'day'
             ? renderDayCol(weekDays[mobileDayIndex], mobileDayIndex)
             : weekDays.map((day, di) => renderDayCol(day, di))}
         </div>

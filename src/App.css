@@ -787,6 +787,103 @@
   .ev-tooltip {
     display: none;
   }
+
+  /* ── Mobile week view ──────────────────────────────────── */
+  .mobile-week .cal-header {
+    display: grid;
+  }
+
+  .mobile-week .cal-body {
+    grid-template-columns: 28px repeat(7, 1fr);
+  }
+
+  .mobile-week .cal-hour-label {
+    font-size: 8px;
+    right: 2px;
+  }
+
+  .mobile-week .cal-day-head {
+    padding: 4px 2px;
+  }
+
+  .mobile-week .cal-weekday {
+    font-size: 9px;
+  }
+
+  .mobile-week .cal-date {
+    font-size: 12px;
+  }
+
+  .mobile-week .cal-event {
+    padding: 2px 3px;
+    border-left-width: 2px;
+  }
+
+  .mobile-week .ev-header {
+    gap: 2px;
+  }
+
+  .mobile-week .ev-time {
+    font-size: 8px;
+  }
+
+  .mobile-week .ev-broadcast {
+    display: none;
+  }
+
+  .mobile-week .ev-title {
+    font-size: 9px;
+    -webkit-line-clamp: 2;
+  }
+
+  .mobile-week .ev-members {
+    display: none;
+  }
+
+  .mobile-week .ev-check {
+    font-size: 9px;
+  }
+}
+
+/* ── View toggle (mobile only) ───────────────────────────── */
+.cal-view-toggle {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .cal-view-toggle {
+    display: flex;
+    flex-shrink: 0;
+    border: 1px solid #ede0f7;
+    border-radius: 6px;
+    overflow: hidden;
+    margin: 0 8px;
+  }
+
+  .cal-view-btn {
+    border: none;
+    background: transparent;
+    color: #9b89b8;
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 8px;
+    cursor: pointer;
+    transition: background 0.12s, color 0.12s;
+  }
+
+  .cal-view-btn.active {
+    background: #a855f7;
+    color: #fff;
+  }
+
+  .cal-week-label {
+    flex: 1;
+    text-align: center;
+    font-size: 13px;
+    font-weight: 600;
+    color: #3d2b5e;
+    align-self: center;
+  }
 }
 
 .cal-nav-arrow {
