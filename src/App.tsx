@@ -49,6 +49,17 @@ function dateToWeekOffset(date: Date): number {
 
 function App() {
   const avatars = useAvatars();
+
+  useEffect(() => {
+    const url = avatars.get('嘉然');
+    if (!url) return;
+    const link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+    if (link) {
+      link.type = 'image/jpeg';
+      link.href = url;
+    }
+  }, [avatars]);
+
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [selectedKinds, setSelectedKinds] = useState<Set<BroadcastKind>>(new Set());
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
@@ -211,7 +222,7 @@ function App() {
           <span className="app-title-icon" aria-hidden>
             <CalendarIcon />
           </span>
-          <span>A-SOUL 日程</span>
+          <span>ASOUL日历</span>
         </div>
         <div className="header-right">
           {isAdmin && (
