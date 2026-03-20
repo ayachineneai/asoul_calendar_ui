@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import type { Live } from '../types';
 import { getBroadcastKind, BROADCAST_LABELS } from '../types';
 import { MEMBER_MAP } from '../constants';
@@ -106,6 +106,36 @@ export default function WeekCalendar({
     return d === 0 ? 6 : d - 1;
   });
   const [mobileView, setMobileView] = useState<'day' | 'week'>('day');
+  const [isMultiSelect, setIsMultiSelect] = useState(false);
+  const [detailLive, setDetailLive] = useState<Live | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleTouchStart = useCallback((live: Live) => {
+    longPressTimer.current = setTimeout(() => {
+      longPressTimer.current = null;
+      setIsMultiSelect(true);
+      navigator.vibrate?.(50);
+      if (live.slug) onToggleSlug(live.slug);
+    }, 400);
+  }, [onToggleSlug]);
+
+  const handleTouchMove = useCallback(() => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback((live: Live) => {
+    if (!longPressTimer.current) return; // long press already fired
+    clearTimeout(longPressTimer.current);
+    longPressTimer.current = null;
+    if (isMultiSelect) {
+      if (live.slug) onToggleSlug(live.slug);
+    } else {
+      setDetailLive(live);
+    }
+  }, [isMultiSelect, onToggleSlug]);
 
   // Track container height to fill it exactly
   useEffect(() => {
@@ -159,7 +189,7 @@ export default function WeekCalendar({
           return (
             <div
               key={i}
-              className={`cal-event${selected ? ' selected' : ''}${isAdmin ? ' admin-event' : ''}`}
+              className={`cal-event${selected ? ' selected' : ''}${isAdmin ? ' admin-event' : ''}${isMultiSelect ? ' multi-select-mode' : ''}`}
               style={{
                 top,
                 height,
@@ -169,7 +199,10 @@ export default function WeekCalendar({
                 background: selected ? hexToRgba(color, 0.25) : hexToRgba(color, 0.12),
                 boxShadow: selected ? `0 0 0 1.5px ${color}` : undefined,
               }}
-              onClick={() => live.slug && onToggleSlug(live.slug)}
+              onClick={isMobile ? undefined : () => live.slug && onToggleSlug(live.slug)}
+              onTouchStart={isMobile ? () => handleTouchStart(live) : undefined}
+              onTouchMove={isMobile ? handleTouchMove : undefined}
+              onTouchEnd={isMobile ? () => handleTouchEnd(live) : undefined}
               onMouseEnter={(e) => {
                 if (isMobile) return;
                 const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
@@ -236,6 +269,12 @@ export default function WeekCalendar({
 
   return (
     <>
+      {isMobile && isMultiSelect && (
+        <div className="mobile-multiselect-bar">
+          <span>已选 {selectedSlugs.size} 场</span>
+          <button onClick={() => { setIsMultiSelect(false); }}>完成</button>
+        </div>
+      )}
       <div className={`calendar${isMobileWeek ? ' mobile-week' : ''}`} onMouseLeave={() => setTooltip(null)}>
         {/* Desktop sticky header (also shown in mobile week view) */}
         <div className="cal-header">
@@ -324,6 +363,10 @@ export default function WeekCalendar({
 
       {/* Fixed-position tooltip — outside calendar so overflow:hidden won't clip it */}
       {tooltip && !isMobile && <EventTooltip tooltip={tooltip} />}
+
+      {detailLive && (
+        <MobileEventDetail live={detailLive} onClose={() => setDetailLive(null)} />
+      )}
     </>
   );
 }
@@ -365,6 +408,41 @@ function EventTooltip({ tooltip }: { tooltip: Tooltip }) {
       {live.slug && (
         <div className="ev-tooltip-hint">点击卡片可加入/移出精选订阅</div>
       )}
+    </div>
+  );
+}
+
+function MobileEventDetail({ live, onClose }: { live: Live; onClose: () => void }) {
+  const color = getMemberColor(live);
+  const bk = getBroadcastKind(live.members);
+  const startTime = new Date(live.start_time);
+  const title =
+    live.kind === 'unplanned' && live.title.startsWith('【突击】')
+      ? live.title.slice(4)
+      : live.title;
+
+  return (
+    <div className="mobile-detail-overlay" onClick={onClose}>
+      <div className="mobile-detail-sheet" onClick={(e) => e.stopPropagation()}>
+        <div className="mobile-detail-handle" />
+        <div className="mobile-detail-time" style={{ color }}>
+          {startTime.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric', weekday: 'short' })}
+          {' '}
+          {startTime.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', hour12: false })}
+        </div>
+        <div className="mobile-detail-title">{title}</div>
+        <div className="mobile-detail-meta">
+          {live.members.length >= 2 && (
+            <span className={`ev-broadcast ev-broadcast-${bk}`}>{BROADCAST_LABELS[bk]}</span>
+          )}
+          <span className={`ev-broadcast ev-kind-label-${live.kind}`}>
+            {live.kind === 'unplanned' ? '突击' : '官方'}
+          </span>
+          {live.tag && <span className="mobile-detail-tag">{live.tag}</span>}
+        </div>
+        <div className="mobile-detail-members">{live.members.join(' · ')}</div>
+        <div className="mobile-detail-hint">长按卡片可进入多选模式</div>
+      </div>
     </div>
   );
 }
