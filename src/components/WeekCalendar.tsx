@@ -28,6 +28,9 @@ function hexToRgba(hex: string, alpha: number) {
 }
 
 function getMemberColor(live: Live): string {
+  const kind = getBroadcastKind(live.members);
+  if (kind === 'group') return '#7c3aed';
+  if (kind === 'duo') return '#ea6800';
   for (const key of live.members) {
     const color = MEMBER_MAP.get(key)?.color;
     if (color) return color;
