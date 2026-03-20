@@ -107,11 +107,86 @@
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.2px;
+  border: none;
+  cursor: pointer;
   transition: opacity 0.15s;
 }
 
 .subscribe-btn:hover {
   opacity: 0.82;
+}
+
+.ics-download-btn {
+  padding: 7px 18px;
+  border-radius: 20px;
+  background: transparent;
+  border: 1.5px solid #c4b8d8;
+  color: #7c5cbf;
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.ics-download-btn:hover {
+  border-color: #9333ea;
+  color: #9333ea;
+}
+
+/* ── Subscribe modal body ─────────────────────────────── */
+.sub-modal-body {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px 20px 20px;
+}
+
+.sub-modal-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sub-modal-url-row {
+  display: flex;
+  gap: 8px;
+}
+
+.sub-modal-url-input {
+  flex: 1;
+  padding: 7px 10px;
+  border-radius: 8px;
+  border: 1px solid #ede0f7;
+  font-size: 12px;
+  color: #5a4070;
+  background: #faf8ff;
+  outline: none;
+  cursor: text;
+  font-family: monospace;
+}
+
+.sub-modal-copy-btn {
+  padding: 7px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #c4b8d8;
+  background: transparent;
+  color: #7c5cbf;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.sub-modal-copy-btn:hover {
+  border-color: #9333ea;
+  color: #9333ea;
+}
+
+.sub-modal-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 /* ── Filters ─────────────────────────────────────────────── */

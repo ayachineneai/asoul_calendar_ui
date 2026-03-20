@@ -17,6 +17,7 @@ import TagFilter from './components/TagFilter';
 import WeekCalendar from './components/WeekCalendar';
 import DurationPicker from './components/DurationPicker';
 import LiveForm from './components/LiveForm';
+import SubscribeModal from './components/SubscribeModal';
 import { useAvatars } from './hooks/useAvatars';
 
 function getMonday(offset: number): Date {
@@ -155,21 +156,24 @@ function App() {
     });
   }, [lives, selectedMembers, selectedKinds, selectedTags]);
 
-  // If specific events are selected, subscribe to those slugs only;
-  // otherwise subscribe to current filter conditions.
-  const subscribeUrl = useMemo(() => {
+  const [showSubscribeModal, setShowSubscribeModal] = useState(false);
+
+  // ICS download: slugs of this week's filtered lives
+  const thisWeekIcsUrl = useMemo(() => {
+    const weekStart = weekDays[0];
+    const weekEnd = new Date(weekDays[6]);
+    weekEnd.setDate(weekEnd.getDate() + 1);
+    const slugs = filteredLives
+      .filter((l) => {
+        const t = new Date(l.start_time);
+        return t >= weekStart && t < weekEnd;
+      })
+      .map((l) => l.slug);
     const params = new URLSearchParams();
-    if (selectedSlugs.size > 0) {
-      for (const s of selectedSlugs) params.append('slug', s);
-    } else {
-      for (const m of selectedMembers) params.append('members', m);
-      for (const k of selectedKinds) params.append('broadcast', k);
-      for (const t of selectedTags) params.append('tag', t);
-    }
-    if (reminder !== null) params.set('reminder', String(reminder));
+    for (const s of slugs) params.append('slug', s);
     params.set('duration', String(duration));
     return `${API_BASE}/calendar.ics?${params}`;
-  }, [selectedMembers, selectedKinds, selectedTags, selectedSlugs, reminder, duration]);
+  }, [filteredLives, weekDays, duration]);
 
   function makeToggle<T>(setter: React.Dispatch<React.SetStateAction<Set<T>>>) {
     return (value: T, multi: boolean) => {
@@ -233,14 +237,17 @@ function App() {
           {selectedSlugs.size > 0 && (
             <span className="slug-hint">已选 {selectedSlugs.size} 场</span>
           )}
-          <a className="subscribe-btn" href={subscribeUrl}>
-            {selectedSlugs.size > 0 ? '订阅已选场次' : '订阅日历'}
-          </a>
           {selectedSlugs.size > 0 && (
             <button className="clear-slugs-btn" onClick={() => setSelectedSlugs(new Set())}>
               清除选择
             </button>
           )}
+          <a className="ics-download-btn" href={thisWeekIcsUrl} download="asoul_week.ics">
+            下载本周ICS
+          </a>
+          <button className="subscribe-btn" onClick={() => setShowSubscribeModal(true)}>
+            订阅日历
+          </button>
         </div>
       </header>
 
@@ -332,6 +339,13 @@ function App() {
           live={editingLive}
           onSubmit={handleUpdate}
           onClose={() => setEditingLive(null)}
+        />
+      )}
+      {showSubscribeModal && (
+        <SubscribeModal
+          onClose={() => setShowSubscribeModal(false)}
+          avatars={avatars}
+          members={MEMBERS}
         />
       )}
     </div>
