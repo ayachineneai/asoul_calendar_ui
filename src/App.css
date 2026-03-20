@@ -598,6 +598,16 @@
   color: #7c3aed;
 }
 
+.ev-kind-unplanned {
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+}
+
+.ev-kind-schedule {
+  background: rgba(34, 197, 94, 0.12);
+  color: #16a34a;
+}
+
 /* Broadcast filter chips */
 .broadcast-chip.broadcast-duo.active {
   background: rgba(249, 115, 22, 0.12);
