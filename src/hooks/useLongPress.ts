@@ -3,7 +3,8 @@ import { useRef, useCallback } from 'react';
 export function useLongPress(onLongPress: () => void, delay = 400) {
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const onTouchStart = useCallback(() => {
+  const onTouchStart = useCallback((e: React.TouchEvent) => {
+    e.preventDefault();
     timer.current = setTimeout(() => {
       timer.current = null;
       navigator.vibrate?.(50);

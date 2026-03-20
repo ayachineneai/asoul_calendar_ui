@@ -112,7 +112,8 @@ export default function WeekCalendar({
   const [detailLive, setDetailLive] = useState<Live | null>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const handleTouchStart = useCallback((live: Live) => {
+  const handleTouchStart = useCallback((e: React.TouchEvent, live: Live) => {
+    e.preventDefault();
     longPressTimer.current = setTimeout(() => {
       longPressTimer.current = null;
       setIsMultiSelect(true);
@@ -202,7 +203,7 @@ export default function WeekCalendar({
                 boxShadow: selected ? `0 0 0 1.5px ${color}` : undefined,
               }}
               onClick={isMobile ? undefined : () => live.slug && onToggleSlug(live.slug)}
-              onTouchStart={isMobile ? () => handleTouchStart(live) : undefined}
+              onTouchStart={isMobile ? (e) => handleTouchStart(e, live) : undefined}
               onTouchMove={isMobile ? handleTouchMove : undefined}
               onTouchEnd={isMobile ? () => handleTouchEnd(live) : undefined}
               onMouseEnter={(e) => {

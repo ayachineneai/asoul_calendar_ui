@@ -273,6 +273,8 @@
   border: none;
   border-radius: 10px;
   transition: background 0.12s;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .member-avatar:hover {
@@ -341,6 +343,8 @@
   font-size: 12px;
   font-weight: 500;
   transition: all 0.12s;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .tag-chip:hover {
@@ -602,6 +606,8 @@
   transition: filter 0.12s, z-index 0s;
   z-index: 1;
   box-sizing: border-box;
+  -webkit-touch-callout: none;
+  user-select: none;
 }
 
 .cal-event:hover {
