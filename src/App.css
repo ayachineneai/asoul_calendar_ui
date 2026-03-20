@@ -206,6 +206,28 @@
   gap: 16px;
 }
 
+/* ── Filter multiselect bar ──────────────────────────────── */
+.filter-multiselect-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 4px 4px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: #a855f7;
+}
+
+.filter-multiselect-bar button {
+  border: 1.5px solid #a855f7;
+  background: transparent;
+  color: #a855f7;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 12px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+
 .filter-reset-btn {
   margin-left: 12px;
   border: 1.5px solid #c4b8d8;

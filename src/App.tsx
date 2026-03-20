@@ -64,6 +64,7 @@ function App() {
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [selectedKinds, setSelectedKinds] = useState<Set<BroadcastKind>>(new Set());
   const [selectedLiveKinds, setSelectedLiveKinds] = useState<Set<'schedule' | 'unplanned'>>(new Set());
+  const [filterMultiSelect, setFilterMultiSelect] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [reminder, setReminder] = useState<number | null>(0);
@@ -184,7 +185,7 @@ function App() {
   function makeToggle<T>(setter: React.Dispatch<React.SetStateAction<Set<T>>>) {
     return (value: T, multi: boolean) => {
       setter((prev) => {
-        if (multi) {
+        if (multi || filterMultiSelect) {
           const next = new Set(prev);
           next.has(value) ? next.delete(value) : next.add(value);
           return next;
@@ -250,11 +251,18 @@ function App() {
       </header>
 
       <div className="filters">
+        {filterMultiSelect && (
+          <div className="filter-multiselect-bar">
+            <span>多选模式</span>
+            <button onClick={() => setFilterMultiSelect(false)}>完成</button>
+          </div>
+        )}
         <MemberFilter
           members={MEMBERS}
           selected={selectedMembers}
           onToggle={toggleMember}
           avatars={avatars}
+          onEnterMultiSelect={() => setFilterMultiSelect(true)}
         />
         <BroadcastFilter
           selected={selectedKinds}
@@ -274,8 +282,9 @@ function App() {
             setSelectedTags(new Set());
             setSelectedLiveKinds(new Set());
           }}
+          onEnterMultiSelect={() => setFilterMultiSelect(true)}
         />
-        <TagFilter tags={allTags} selected={selectedTags} onToggle={toggleTag} />
+        <TagFilter tags={allTags} selected={selectedTags} onToggle={toggleTag} onEnterMultiSelect={() => setFilterMultiSelect(true)} />
         <div className="filter-row">
           <span className="filter-label">设置</span>
           <label className="setting-item">
