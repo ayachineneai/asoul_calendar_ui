@@ -6,9 +6,11 @@ const ALL_KINDS: BroadcastKind[] = ['solo', 'duo', 'group'];
 interface Props {
   selected: Set<BroadcastKind>;
   onToggle: (kind: BroadcastKind, multi: boolean) => void;
+  scheduleOnly: boolean;
+  onToggleSchedule: () => void;
 }
 
-export default function BroadcastFilter({ selected, onToggle }: Props) {
+export default function BroadcastFilter({ selected, onToggle, scheduleOnly, onToggleSchedule }: Props) {
   return (
     <div className="filter-row">
       <span className="filter-label">类型</span>
@@ -22,6 +24,12 @@ export default function BroadcastFilter({ selected, onToggle }: Props) {
             {BROADCAST_LABELS[k]}
           </button>
         ))}
+        <button
+          className={`tag-chip kind-chip-schedule${scheduleOnly ? ' active' : ''}`}
+          onClick={onToggleSchedule}
+        >
+          官方
+        </button>
       </div>
     </div>
   );

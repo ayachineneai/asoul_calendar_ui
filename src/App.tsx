@@ -63,6 +63,7 @@ function App() {
 
   const [selectedMembers, setSelectedMembers] = useState<Set<string>>(new Set());
   const [selectedKinds, setSelectedKinds] = useState<Set<BroadcastKind>>(new Set());
+  const [scheduleOnly, setScheduleOnly] = useState(false);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [reminder, setReminder] = useState<number | null>(0);
@@ -152,9 +153,10 @@ function App() {
       if (selectedKinds.size > 0 && !selectedKinds.has(getBroadcastKind(l.members)))
         return false;
       if (selectedTags.size > 0 && !selectedTags.has(l.tag)) return false;
+      if (scheduleOnly && l.kind !== 'schedule') return false;
       return true;
     });
-  }, [lives, selectedMembers, selectedKinds, selectedTags]);
+  }, [lives, selectedMembers, selectedKinds, selectedTags, scheduleOnly]);
 
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
@@ -258,7 +260,12 @@ function App() {
           onToggle={toggleMember}
           avatars={avatars}
         />
-        <BroadcastFilter selected={selectedKinds} onToggle={toggleKind} />
+        <BroadcastFilter
+          selected={selectedKinds}
+          onToggle={toggleKind}
+          scheduleOnly={scheduleOnly}
+          onToggleSchedule={() => setScheduleOnly((v) => !v)}
+        />
         <TagFilter tags={allTags} selected={selectedTags} onToggle={toggleTag} />
         <div className="filter-row">
           <span className="filter-label">设置</span>
