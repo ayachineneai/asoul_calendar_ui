@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import type { Member } from '../types';
 import { useLongPress } from '../hooks/useLongPress';
 
@@ -43,7 +44,11 @@ function MemberChip({ m, active, avatarUrl, onToggle, onEnterMultiSelect }: {
   );
 }
 
+const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches;
+
 export default function MemberFilter({ members, selected, onToggle, avatars, onEnterMultiSelect }: Props) {
+  const [hintOpen, setHintOpen] = useState(false);
+
   return (
     <div className="filter-row">
       <span className="filter-label">成员</span>
@@ -58,6 +63,25 @@ export default function MemberFilter({ members, selected, onToggle, avatars, onE
             onEnterMultiSelect={onEnterMultiSelect}
           />
         ))}
+        <div className="member-hint-wrap">
+          <button
+            className="member-hint-btn"
+            onClick={() => isTouchDevice() && setHintOpen((v) => !v)}
+            aria-label="多选说明"
+          >
+            ?
+          </button>
+          {/* PC: CSS hover tooltip */}
+          <div className="member-hint-tooltip member-hint-tooltip--desktop">
+            Ctrl / ⌘ + 点击多选
+          </div>
+          {/* Mobile: tap toggle */}
+          {hintOpen && (
+            <div className="member-hint-tooltip member-hint-tooltip--mobile">
+              长按任意头像进入多选模式
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
