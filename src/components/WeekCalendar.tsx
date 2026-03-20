@@ -71,6 +71,7 @@ interface Props {
   weekDays: Date[];
   selectedSlugs: Set<string>;
   onToggleSlug: (slug: string) => void;
+  onClearSlugs: () => void;
   duration: number;
   isAdmin?: boolean;
   onEditLive?: (live: Live) => void;
@@ -82,6 +83,7 @@ export default function WeekCalendar({
   weekDays,
   selectedSlugs,
   onToggleSlug,
+  onClearSlugs,
   duration,
   isAdmin,
   onEditLive,
@@ -272,7 +274,12 @@ export default function WeekCalendar({
       {isMobile && isMultiSelect && (
         <div className="mobile-multiselect-bar">
           <span>已选 {selectedSlugs.size} 场</span>
-          <button onClick={() => { setIsMultiSelect(false); }}>完成</button>
+          <div className="mobile-multiselect-actions">
+            {selectedSlugs.size > 0 && (
+              <button onClick={onClearSlugs}>清除</button>
+            )}
+            <button onClick={() => setIsMultiSelect(false)}>完成</button>
+          </div>
         </div>
       )}
       <div className={`calendar${isMobileWeek ? ' mobile-week' : ''}`} onMouseLeave={() => setTooltip(null)}>

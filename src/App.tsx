@@ -240,14 +240,6 @@ function App() {
               + 新增日程
             </button>
           )}
-          {selectedSlugs.size > 0 && (
-            <span className="slug-hint">已选 {selectedSlugs.size} 场</span>
-          )}
-          {selectedSlugs.size > 0 && (
-            <button className="clear-slugs-btn" onClick={() => setSelectedSlugs(new Set())}>
-              清除选择
-            </button>
-          )}
           <a className="ics-download-btn" href={thisWeekIcsUrl} download="asoul_week.ics">
             {selectedSlugs.size > 0 ? `下载已选(${selectedSlugs.size})` : '下载本周ICS'}
           </a>
@@ -258,6 +250,19 @@ function App() {
       </header>
 
       <div className="filters">
+        {(selectedMembers.size > 0 || selectedKinds.size > 0 || selectedTags.size > 0 || selectedLiveKinds.size > 0) && (
+          <button
+            className="filter-reset-btn"
+            onClick={() => {
+              setSelectedMembers(new Set());
+              setSelectedKinds(new Set());
+              setSelectedTags(new Set());
+              setSelectedLiveKinds(new Set());
+            }}
+          >
+            重置筛选
+          </button>
+        )}
         <MemberFilter
           members={MEMBERS}
           selected={selectedMembers}
@@ -340,6 +345,7 @@ function App() {
             weekDays={weekDays}
             selectedSlugs={selectedSlugs}
             onToggleSlug={toggleSlug}
+            onClearSlugs={() => setSelectedSlugs(new Set())}
             duration={duration}
             isAdmin={isAdmin}
             onEditLive={setEditingLive}

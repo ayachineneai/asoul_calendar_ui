@@ -206,6 +206,19 @@
   gap: 16px;
 }
 
+.filter-reset-btn {
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: #a855f7;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .filter-label {
   font-size: 11px;
   font-weight: 700;
@@ -1097,7 +1110,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 8px 16px;
+  padding: 5px 12px;
   background: #3d2b5e;
   color: #fff;
   font-size: 13px;
@@ -1105,13 +1118,18 @@
   flex-shrink: 0;
 }
 
+.mobile-multiselect-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .mobile-multiselect-bar button {
   border: 1.5px solid rgba(255,255,255,0.4);
   background: transparent;
   color: #fff;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 3px 14px;
+  padding: 2px 12px;
   border-radius: 14px;
   cursor: pointer;
 }
