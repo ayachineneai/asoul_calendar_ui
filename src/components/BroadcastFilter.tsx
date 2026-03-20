@@ -39,10 +39,10 @@ export default function BroadcastFilter({ selected, onToggle, selectedLiveKinds,
             {LIVE_KIND_LABELS[k]}
           </button>
         ))}
+        {hasActiveFilters && (
+          <button className="filter-reset-btn" onClick={onReset}>重置</button>
+        )}
       </div>
-      {hasActiveFilters && (
-        <button className="filter-reset-btn" onClick={onReset}>重置筛选</button>
-      )}
     </div>
   );
 }
