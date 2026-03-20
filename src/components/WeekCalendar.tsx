@@ -191,9 +191,6 @@ export default function WeekCalendar({
                     {BROADCAST_LABELS[getBroadcastKind(live.members)]}
                   </span>
                 )}
-                {live.kind === 'unplanned' && (
-                  <span className="ev-broadcast ev-kind-unplanned">突击</span>
-                )}
                 {selected && <span className="ev-check">✓</span>}
               </div>
               <div className="ev-title">
