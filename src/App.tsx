@@ -160,22 +160,26 @@ function App() {
 
   const [showSubscribeModal, setShowSubscribeModal] = useState(false);
 
-  // ICS download: slugs of this week's filtered lives
+  // ICS download: selected slugs if any, otherwise this week's filtered lives
   const thisWeekIcsUrl = useMemo(() => {
-    const weekStart = weekDays[0];
-    const weekEnd = new Date(weekDays[6]);
-    weekEnd.setDate(weekEnd.getDate() + 1);
-    const slugs = filteredLives
-      .filter((l) => {
-        const t = new Date(l.start_time);
-        return t >= weekStart && t < weekEnd;
-      })
-      .map((l) => l.slug);
     const params = new URLSearchParams();
-    for (const s of slugs) params.append('slug', s);
+    if (selectedSlugs.size > 0) {
+      for (const s of selectedSlugs) params.append('slug', s);
+    } else {
+      const weekStart = weekDays[0];
+      const weekEnd = new Date(weekDays[6]);
+      weekEnd.setDate(weekEnd.getDate() + 1);
+      const slugs = filteredLives
+        .filter((l) => {
+          const t = new Date(l.start_time);
+          return t >= weekStart && t < weekEnd;
+        })
+        .map((l) => l.slug);
+      for (const s of slugs) params.append('slug', s);
+    }
     params.set('duration', String(duration));
     return `${API_BASE}/calendar.ics?${params}`;
-  }, [filteredLives, weekDays, duration]);
+  }, [filteredLives, weekDays, duration, selectedSlugs]);
 
   function makeToggle<T>(setter: React.Dispatch<React.SetStateAction<Set<T>>>) {
     return (value: T, multi: boolean) => {
@@ -245,7 +249,7 @@ function App() {
             </button>
           )}
           <a className="ics-download-btn" href={thisWeekIcsUrl} download="asoul_week.ics">
-            下载本周ICS
+            {selectedSlugs.size > 0 ? `下载已选(${selectedSlugs.size})` : '下载本周ICS'}
           </a>
           <button className="subscribe-btn" onClick={() => setShowSubscribeModal(true)}>
             订阅日历
