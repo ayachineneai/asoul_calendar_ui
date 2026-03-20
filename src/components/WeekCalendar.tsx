@@ -191,9 +191,16 @@ export default function WeekCalendar({
                     {BROADCAST_LABELS[getBroadcastKind(live.members)]}
                   </span>
                 )}
+                <span className={`ev-broadcast ev-kind-${live.kind}`}>
+                  {live.kind === 'unplanned' ? '突击' : '官方'}
+                </span>
                 {selected && <span className="ev-check">✓</span>}
               </div>
-              <div className="ev-title">{live.title}</div>
+              <div className="ev-title">
+                {live.kind === 'unplanned' && live.title.startsWith('【突击】')
+                  ? live.title.slice(4)
+                  : live.title}
+              </div>
               <div className="ev-members">{live.members.join(' · ')}</div>
 
               {isAdmin && (
