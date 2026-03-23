@@ -136,9 +136,17 @@ function App() {
   }, [lives]);
 
   const allTags = useMemo(() => {
-    const tags = new Set(lives.map((l) => l.tag).filter((t) => Boolean(t) && t !== '突击'));
+    const weekStart = weekDays[0];
+    const weekEnd = new Date(weekDays[6]);
+    weekEnd.setDate(weekEnd.getDate() + 1);
+    const tags = new Set(
+      lives
+        .filter((l) => { const t = new Date(l.start_time); return t >= weekStart && t < weekEnd; })
+        .map((l) => l.tag)
+        .filter((t) => Boolean(t) && t !== '突击')
+    );
     return [...tags].sort();
-  }, [lives]);
+  }, [lives, weekDays]);
 
   useEffect(() => {
     setSelectedTags((prev) => {
@@ -323,7 +331,7 @@ function App() {
         <span className="week-nav-label">{weekLabel}</span>
         {weekOffset !== 0 && weekOffset >= minWeekOffset && weekOffset <= maxWeekOffset && (
           <button className="week-nav-today" onClick={() => setWeekOffset(0)}>
-            本周
+            回到本周
           </button>
         )}
         <button
