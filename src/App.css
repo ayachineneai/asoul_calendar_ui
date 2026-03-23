@@ -793,6 +793,7 @@
   white-space: nowrap;
 }
 
+
 .ev-members {
   font-size: 10px;
   color: #9b89b8;
@@ -1268,7 +1269,7 @@
   width: 100%;
   background: #fff;
   border-radius: 16px 16px 0 0;
-  padding: 8px 20px 32px;
+  padding: 8px 20px calc(32px + env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 8px;

@@ -235,7 +235,7 @@ export default function WeekCalendar({
                   ? live.title.slice(4)
                   : live.title}
               </div>
-              <div className="ev-members">{live.members.join(' · ')}</div>
+              {live.host && <div className="ev-members">{live.host}</div>}
 
               {isAdmin && (
                 <div className="ev-admin-actions">
@@ -386,13 +386,14 @@ function EventTooltip({ tooltip }: { tooltip: Tooltip }) {
   const startTime = new Date(live.start_time);
 
   const tooltipWidth = 240;
-  // Prefer right side; if it overflows viewport, place fully to the left of the card
+  const tooltipHeight = 160;
   const left = x + tooltipWidth > window.innerWidth ? xLeft - tooltipWidth - 6 : x;
+  const top = y + tooltipHeight > window.innerHeight ? window.innerHeight - tooltipHeight - 12 : y;
 
   return (
     <div
       className="ev-tooltip"
-      style={{ left, top: y }}
+      style={{ left, top }}
       onMouseEnter={(e) => e.stopPropagation()}
     >
       <div className="ev-tooltip-time" style={{ color }}>
@@ -412,7 +413,7 @@ function EventTooltip({ tooltip }: { tooltip: Tooltip }) {
         <span className={`ev-broadcast ev-broadcast-${bk}`}>{BROADCAST_LABELS[bk]}</span>
         {live.tag && <span className="ev-tooltip-tag">{live.tag}</span>}
       </div>
-      <div className="ev-tooltip-members">{live.members.join(' · ')}</div>
+      {live.host && <div className="ev-tooltip-members">{live.host}</div>}
       {live.slug && (
         <div className="ev-tooltip-hint">点击卡片可加入/移出精选订阅</div>
       )}
@@ -448,7 +449,7 @@ function MobileEventDetail({ live, onClose }: { live: Live; onClose: () => void 
           </span>
           {live.tag && <span className="mobile-detail-tag">{live.tag}</span>}
         </div>
-        <div className="mobile-detail-members">{live.members.join(' · ')}</div>
+        {live.host && <div className="mobile-detail-members">{live.host}</div>}
         <div className="mobile-detail-hint">长按卡片可进入多选模式</div>
       </div>
     </div>
