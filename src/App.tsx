@@ -65,6 +65,7 @@ function App() {
   const [selectedKinds, setSelectedKinds] = useState<Set<BroadcastKind>>(new Set());
   const [selectedLiveKinds, setSelectedLiveKinds] = useState<Set<'schedule' | 'unplanned'>>(new Set());
   const [filterMultiSelect, setFilterMultiSelect] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(true);
   const [selectedTags, setSelectedTags] = useState<Set<string>>(new Set());
   const [selectedSlugs, setSelectedSlugs] = useState<Set<string>>(new Set());
   const [reminder, setReminder] = useState<number | null>(0);
@@ -242,6 +243,18 @@ function App() {
             <CalendarIcon />
           </span>
           <span>ASOUL日历</span>
+          <button
+            className="filter-toggle-btn"
+            onClick={() => setFiltersOpen((v) => !v)}
+          >
+            <span className={`filter-toggle-icon${filtersOpen ? '' : ' collapsed'}`}>▾</span>
+            <span className="filter-toggle-label">
+              {filtersOpen ? '收起筛选条件' : '展开筛选条件'}
+            </span>
+            {!filtersOpen && (selectedMembers.size > 0 || selectedKinds.size > 0 || selectedTags.size > 0 || selectedLiveKinds.size > 0) && (
+              <span className="filter-toggle-dot" />
+            )}
+          </button>
         </div>
         <div className="header-right">
           {isAdmin && (
@@ -258,7 +271,7 @@ function App() {
         </div>
       </header>
 
-      <div className="filters">
+      <div className={`filters${filtersOpen ? '' : ' filters-hidden'}`}>
         {filterMultiSelect && (
           <div className="filter-multiselect-bar">
             <span>多选模式</span>
