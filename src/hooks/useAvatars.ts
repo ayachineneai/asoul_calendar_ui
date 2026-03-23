@@ -1,37 +1,25 @@
-import { useState, useEffect } from 'react';
 import { MEMBERS } from '../constants';
+import bellaAvatar from '../assets/bella.jpg';
+import dianaAvatar from '../assets/diana.jpg';
+import fionaAvatar from '../assets/fiona.jpg';
+import queenAvatar from '../assets/queen.jpg';
+import snowAvatar from '../assets/snow.jpg';
 
 // code -> avatar URL
 type AvatarMap = Map<string, string>;
 
-async function fetchAvatar(uid: number): Promise<string | null> {
-  try {
-    const res = await fetch(`/bilibili/x/web-interface/card?mid=${uid}&photo=true`);
-    if (!res.ok) return null;
-    const json = await res.json();
-    return json?.data?.card?.face ?? null;
-  } catch {
-    return null;
-  }
-}
+const LOCAL_AVATARS: Record<string, string> = {
+  '贝拉': bellaAvatar,
+  '乃琳': queenAvatar,
+  '嘉然': dianaAvatar,
+  '心宜': fionaAvatar,
+  '思诺': snowAvatar,
+};
 
 export function useAvatars(): AvatarMap {
-  const [avatars, setAvatars] = useState<AvatarMap>(new Map());
-
-  useEffect(() => {
-    Promise.all(
-      MEMBERS.map(async (m) => {
-        const url = await fetchAvatar(m.uid);
-        return [m.code, url] as const;
-      }),
-    ).then((entries) => {
-      const map = new Map<string, string>();
-      for (const [code, url] of entries) {
-        if (url) map.set(code, url);
-      }
-      setAvatars(map);
-    });
-  }, []);
-
-  return avatars;
+  return new Map(
+    MEMBERS
+      .filter((m) => LOCAL_AVATARS[m.code])
+      .map((m) => [m.code, LOCAL_AVATARS[m.code]]),
+  );
 }
