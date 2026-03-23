@@ -269,6 +269,7 @@ function App() {
           members={MEMBERS}
           selected={selectedMembers}
           onToggle={toggleMember}
+          onSelectAll={(codes) => setSelectedMembers(new Set(codes))}
           avatars={avatars}
           onEnterMultiSelect={() => setFilterMultiSelect(true)}
         />

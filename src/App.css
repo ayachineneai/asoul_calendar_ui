@@ -273,6 +273,12 @@
   flex-wrap: wrap;
 }
 
+.member-preset-chip {
+  font-size: 11px !important;
+  padding: 3px 10px !important;
+  align-self: center;
+}
+
 /* ── Member hint ─────────────────────────────────────────── */
 .member-hint-wrap {
   position: relative;

@@ -6,9 +6,15 @@ interface Props {
   members: Member[];
   selected: Set<string>;
   onToggle: (code: string, multi: boolean) => void;
+  onSelectAll: (codes: string[]) => void;
   avatars: Map<string, string>;
   onEnterMultiSelect: () => void;
 }
+
+const PRESETS = [
+  { label: '一期', codes: ['乃琳', '嘉然', '贝拉'] },
+  { label: '二期', codes: ['思诺', '心宜'] },
+];
 
 function MemberChip({ m, active, avatarUrl, onToggle, onEnterMultiSelect }: {
   m: Member;
@@ -46,7 +52,7 @@ function MemberChip({ m, active, avatarUrl, onToggle, onEnterMultiSelect }: {
 
 const isTouchDevice = () => window.matchMedia('(pointer: coarse)').matches;
 
-export default function MemberFilter({ members, selected, onToggle, avatars, onEnterMultiSelect }: Props) {
+export default function MemberFilter({ members, selected, onToggle, onSelectAll, avatars, onEnterMultiSelect }: Props) {
   const [hintOpen, setHintOpen] = useState(false);
 
   return (
@@ -63,6 +69,19 @@ export default function MemberFilter({ members, selected, onToggle, avatars, onE
             onEnterMultiSelect={onEnterMultiSelect}
           />
         ))}
+        <span className="filter-divider" />
+        {PRESETS.map((p) => {
+          const active = p.codes.length === selected.size && p.codes.every((c) => selected.has(c));
+          return (
+            <button
+              key={p.label}
+              className={`tag-chip member-preset-chip${active ? ' active' : ''}`}
+              onClick={() => active ? onSelectAll([]) : onSelectAll(p.codes)}
+            >
+              {p.label}
+            </button>
+          );
+        })}
         <div className="member-hint-wrap">
           <button
             className="member-hint-btn"
