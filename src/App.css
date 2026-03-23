@@ -974,6 +974,54 @@
     font-size: 12px;
   }
 
+  .ics-download-btn {
+    padding: 4px 10px;
+    font-size: 11px;
+    letter-spacing: 0;
+  }
+
+  .week-nav {
+    padding: 4px 12px;
+    gap: 8px;
+  }
+
+  .week-nav-label {
+    font-size: 12px;
+    min-width: 120px;
+  }
+
+  .week-nav-btn {
+    padding: 3px 8px;
+    font-size: 11px;
+  }
+
+  .week-nav-today {
+    padding: 2px 8px;
+    font-size: 11px;
+  }
+
+  .cal-day-tab {
+    padding: 4px 2px;
+  }
+
+  .cal-day-tab span:first-child {
+    font-size: 8px;
+  }
+
+  .cal-day-tab span:last-child {
+    font-size: 13px;
+  }
+
+  .cal-day-tab.today span:last-child {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
+  }
+
+  .cal-week-label {
+    font-size: 12px;
+  }
+
   .cal-header {
     display: none;
   }
