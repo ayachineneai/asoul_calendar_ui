@@ -1048,6 +1048,7 @@
   /* ── Mobile week view ──────────────────────────────────── */
   .mobile-week .cal-header {
     display: grid;
+    grid-template-columns: 28px repeat(7, 1fr);
   }
 
   .mobile-week .cal-body {
