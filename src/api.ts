@@ -1,8 +1,10 @@
 import type { Live } from './types';
 import { API_BASE } from './constants';
 
-export async function fetchLives(): Promise<Live[]> {
-  const res = await fetch(`${API_BASE}/lives`);
+export async function fetchLives(token?: string): Promise<Live[]> {
+  const res = await fetch(`${API_BASE}/lives`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
@@ -48,6 +50,17 @@ export async function adminUpdateLive(token: string, slug: string, body: LiveBod
     },
     body: JSON.stringify(body),
   });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+}
+
+export async function adminSetLiveHide(token: string, slug: string, hide: boolean): Promise<void> {
+  const res = await fetch(
+    `${API_BASE}/admin/lives/${encodeURIComponent(slug)}/hide?hide=${hide}`,
+    {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}` },
+    },
+  );
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
 }
 

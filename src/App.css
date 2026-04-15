@@ -1348,6 +1348,16 @@
   background: #ffffff;
 }
 
+.ev-admin-btn.ev-admin-hidden {
+  background: rgba(234, 104, 0, 0.15);
+}
+
+/* Hidden event indicator for admins */
+.cal-event.admin-event.ev-is-hidden {
+  opacity: 0.5;
+  border-left-style: dashed;
+}
+
 /* ── Mobile multiselect bar ──────────────────────────────── */
 .mobile-multiselect-bar {
   display: flex;

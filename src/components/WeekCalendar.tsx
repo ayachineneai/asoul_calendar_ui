@@ -76,6 +76,7 @@ interface Props {
   isAdmin?: boolean;
   onEditLive?: (live: Live) => void;
   onDeleteLive?: (live: Live) => void;
+  onSetHideLive?: (live: Live, hide: boolean) => void;
 }
 
 export default function WeekCalendar({
@@ -88,6 +89,7 @@ export default function WeekCalendar({
   isAdmin,
   onEditLive,
   onDeleteLive,
+  onSetHideLive,
 }: Props) {
   const today = new Date();
   const [tooltip, setTooltip] = useState<Tooltip | null>(null);
@@ -192,7 +194,7 @@ export default function WeekCalendar({
           return (
             <div
               key={i}
-              className={`cal-event${selected ? ' selected' : ''}${isAdmin ? ' admin-event' : ''}${isMultiSelect ? ' multi-select-mode' : ''}`}
+              className={`cal-event${selected ? ' selected' : ''}${isAdmin ? ' admin-event' : ''}${isAdmin && live.hide ? ' ev-is-hidden' : ''}${isMultiSelect ? ' multi-select-mode' : ''}`}
               style={{
                 top,
                 height,
@@ -239,6 +241,16 @@ export default function WeekCalendar({
 
               {isAdmin && (
                 <div className="ev-admin-actions">
+                  <button
+                    className={`ev-admin-btn ev-admin-hide${live.hide ? ' ev-admin-hidden' : ''}`}
+                    title={live.hide ? '设为显示' : '设为隐藏'}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSetHideLive?.(live, !live.hide);
+                    }}
+                  >
+                    {live.hide ? '👁️' : '🚫'}
+                  </button>
                   <button
                     className="ev-admin-btn ev-admin-edit"
                     title="编辑"

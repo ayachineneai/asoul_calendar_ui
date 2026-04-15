@@ -6,6 +6,7 @@ import {
   adminCreateLive,
   adminUpdateLive,
   adminDeleteLive,
+  adminSetLiveHide,
 } from './api';
 import type { LiveBody } from './api';
 import { MEMBERS, API_BASE } from './constants';
@@ -107,11 +108,11 @@ function App() {
   const loadLives = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetchLives()
+    fetchLives(adminToken || undefined)
       .then(setLives)
       .catch((e: Error) => setError(e.message))
       .finally(() => setLoading(false));
-  }, []);
+  }, [adminToken]);
 
   useEffect(() => {
     loadLives();
@@ -222,6 +223,11 @@ function App() {
   async function handleDelete(live: Live) {
     if (!confirm(`确认删除「${live.title}」？`)) return;
     await adminDeleteLive(adminToken, live.slug);
+    loadLives();
+  }
+
+  async function handleSetHide(live: Live, hide: boolean) {
+    await adminSetLiveHide(adminToken, live.slug, hide);
     loadLives();
   }
 
@@ -365,6 +371,7 @@ function App() {
             isAdmin={isAdmin}
             onEditLive={setEditingLive}
             onDeleteLive={handleDelete}
+            onSetHideLive={handleSetHide}
           />
         )}
       </main>

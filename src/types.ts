@@ -6,6 +6,7 @@ export interface Live {
   tag: string;
   kind: 'schedule' | 'unplanned';
   slug: string;
+  hide: boolean;
 }
 
 export interface Member {
